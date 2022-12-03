@@ -1,11 +1,13 @@
 use std::fs;
+use std::str::Split;
+
 use crate::Hand::{Paper, Rock, Scissors};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 enum Hand {
     Rock,
     Paper,
-    Scissors
+    Scissors,
 }
 
 trait Beats {
@@ -18,6 +20,20 @@ impl Beats for Hand {
             Paper => Rock,
             Rock => Scissors,
             Scissors => Paper,
+        }
+    }
+}
+
+trait Loses {
+    fn loses(&self) -> Self;
+}
+
+impl Loses for Hand {
+    fn loses(&self) -> Self {
+        match *self {
+            Paper => Scissors,
+            Rock => Paper,
+            Scissors => Rock,
         }
     }
 }
@@ -38,24 +54,25 @@ impl Points for Hand {
 
 struct Game {
     my_move: Hand,
-    opponent_move: Hand
+    opponent_move: Hand,
 }
 
-fn parse_move(opponent_move: char, my_move: char) -> Game {
-    let mut game: Game = Game { my_move: Hand::Rock, opponent_move: Hand::Rock };
-    game.opponent_move = match opponent_move {
-        'A' => Rock,
-        'B' => Paper,
-        'C' => Scissors,
+fn parse_move(input: char) -> Hand {
+    match input {
+        'A' | 'X' => Rock,
+        'B' | 'Y' => Paper,
+        'C' | 'Z' => Scissors,
         _ => { Rock }
-    };
-    game.my_move = match my_move {
-        'X' => Rock,
-        'Y' => Paper,
-        'Z' => Scissors,
+    }
+}
+
+fn calculate_move(input: char, opponent_move: Hand) -> Hand {
+    match input {
+        'X' => opponent_move.beats(),
+        'Y' => opponent_move,
+        'Z' => opponent_move.loses(),
         _ => { Rock }
-    };
-    game
+    }
 }
 
 fn get_points(game: Game) -> i32 {
@@ -68,18 +85,33 @@ fn get_points(game: Game) -> i32 {
     }
 }
 
-fn main() {
-    let file_path = "src/input.txt";
-
-    let input = fs::read_to_string(file_path).expect("File not found");
-    let games = input.split('\n');
-
-    let mut my_score: i32 = 0;
-    for game in games {
-        let char_vec: Vec<char> = game.chars().collect();
-        let game = parse_move(char_vec[0], char_vec[2]);
-        my_score += get_points(game);
+fn part_one(games: Split<char>) {
+    let mut score: i32 = 0;
+    for line in games {
+        let char_vec: Vec<char> = line.chars().collect();
+        let game = Game { my_move: parse_move(char_vec[2]), opponent_move: parse_move(char_vec[0]) };
+        score += get_points(game);
     }
 
-    println!("{:?}", my_score);
+    println!("Result for part one: {:?}", score);
+}
+
+fn part_two(games: Split<char>) {
+    let mut score: i32 = 0;
+    for line in games {
+        let char_vec: Vec<char> = line.chars().collect();
+        let opponent_move = parse_move(char_vec[0]);
+        let game = Game {my_move: calculate_move(char_vec[2], opponent_move), opponent_move };
+        score += get_points(game);
+    }
+
+    println!("Result for part two: {:?}", score);
+}
+
+fn main() {
+    let file_path = "src/input.txt";
+    let input = fs::read_to_string(file_path).expect("File not found");
+
+    part_one(input.split('\n'));
+    part_two(input.split('\n'));
 }
