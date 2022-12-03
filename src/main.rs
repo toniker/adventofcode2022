@@ -35,12 +35,13 @@ impl Points for Hand {
         }
     }
 }
+
 struct Game {
     my_move: Hand,
     opponent_move: Hand
 }
 
-fn parse_input(opponent_move: char, my_move: char) -> Game {
+fn parse_move(opponent_move: char, my_move: char) -> Game {
     let mut game: Game = Game { my_move: Hand::Rock, opponent_move: Hand::Rock };
     game.opponent_move = match opponent_move {
         'A' => Rock,
@@ -76,7 +77,7 @@ fn main() {
     let mut my_score: i32 = 0;
     for game in games {
         let char_vec: Vec<char> = game.chars().collect();
-        let game = parse_input(char_vec[0], char_vec[2]);
+        let game = parse_move(char_vec[0], char_vec[2]);
         my_score += get_points(game);
     }
 
