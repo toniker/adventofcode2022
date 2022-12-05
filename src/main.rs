@@ -1,3 +1,5 @@
+#![feature(iter_array_chunks)]
+
 use std::fs;
 
 fn get_priority(char: char) -> u8 {
@@ -9,7 +11,7 @@ fn get_priority(char: char) -> u8 {
 }
 
 fn part_one(input: String) {
-    let rucksacks = input.split('\n');
+    let rucksacks = input.lines();
     let mut sum_of_priorities: i32 = 0;
 
     'outer: for rucksack in rucksacks {
@@ -23,16 +25,24 @@ fn part_one(input: String) {
         }
     }
 
-    println!("Sum of priorities: {:?}", sum_of_priorities);
+    println!("Sum of priorities: {sum_of_priorities}");
 }
 
 fn part_two(input: String) {
-    let rucksacks = input.split('\n');
-    let groups = rucksacks.step_by(3);
+    let rucksacks = input.lines();
+    let mut sum_of_priorities: i32 = 0;
 
-    for group in groups {
-        println!("{:?}", group);
+    'outer: for group in rucksacks.array_chunks::<3>() {
+        let [first_elf, second_elf, third_elf] = group;
+        for c in first_elf.chars() {
+            if second_elf.contains(c) && third_elf.contains(c) {
+                sum_of_priorities += get_priority(c) as i32;
+                continue 'outer;
+            }
+        }
     }
+
+    println!("Sum of priorities of groups: {sum_of_priorities}");
 }
 
 fn main() {
